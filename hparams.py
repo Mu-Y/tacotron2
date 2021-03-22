@@ -83,6 +83,8 @@ def create_hparams(hparams_string=None, verbose=False):
         grad_clip_thresh=1.0,
         batch_size=64,
         mask_padding=True  # set model's padded outputs to padded values
+        use_cmudict=False,  # Use CMUDict during training to learn pronunciation of ARPAbet phonemes
+        p_cmudict=0.5,     # The probablity of converting text to ARPAbet phonemes
     )
 
     if hparams_string:
