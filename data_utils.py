@@ -2,6 +2,7 @@ import random
 import numpy as np
 import torch
 import torch.utils.data
+import os
 
 import layers
 from utils import load_wav_to_torch, load_filepaths_and_text
@@ -15,6 +16,7 @@ class TextMelLoader(torch.utils.data.Dataset):
         3) computes mel-spectrograms from audio files.
     """
     def __init__(self, audiopaths_and_text, hparams):
+        self.hparams = hparams
         self.audiopaths_and_text = load_filepaths_and_text(audiopaths_and_text)
         self.text_cleaners = hparams.text_cleaners
         self.max_wav_value = hparams.max_wav_value
@@ -26,6 +28,17 @@ class TextMelLoader(torch.utils.data.Dataset):
             hparams.mel_fmax)
         random.seed(hparams.seed)
         random.shuffle(self.audiopaths_and_text)
+        if hparams.use_cmudict:
+            if not os.path.isfile(hparams.cmudict_path):
+                raise Exception('If use_cmudict=True, you must download ' +
+                                'http://svn.code.sf.net/p/cmusphinx/code/trunk/cmudict/cmudict-0.7b to %s' % cmudict_path)
+            if hparams.p_cmudict == 1.0:
+                self._cmudict = cmudict.CMUDict(str(cmudict_path), keep_ambiguous=True)
+            else:
+                self._cmudict = cmudict.CMUDict(str(cmudict_path), keep_ambiguous=False)
+            print('Loaded CMUDict with %d unambiguous entries' % len(self._cmudict))
+        else:
+            self._cmudict = None
 
     def get_mel_text_pair(self, audiopath_and_text):
         # separate filename and text
@@ -54,9 +67,16 @@ class TextMelLoader(torch.utils.data.Dataset):
         return melspec
 
     def get_text(self, text):
+        # Get the text and clean it
+        if self._cmudict and random.random() <= self.hparams.p_cmudict:
+            text = ' '.join([self._maybe_get_arpabet(word) for word in text.split(' ')])
         text_norm = torch.IntTensor(text_to_sequence(text, self.text_cleaners))
         return text_norm
 
+    def _maybe_get_arpabet(self, word):
+        arpabet = self._cmudict.lookup(word)
+        return '{%s}' % arpabet[0] if arpabet is not None and random.random() <= self.hparams.p_cmudict else word
+    
     def __getitem__(self, index):
         return self.get_mel_text_pair(self.audiopaths_and_text[index])
 
