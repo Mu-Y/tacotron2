@@ -432,6 +432,7 @@ class Decoder(nn.Module):
         self.initialize_decoder_states(memory, mask=None)
 
         mel_outputs, gate_outputs, alignments = [], [], []
+        is_max_steps = False
         while True:
             decoder_input = self.prenet(decoder_input)
             mel_output, gate_output, alignment = self.decode(decoder_input)
@@ -444,6 +445,7 @@ class Decoder(nn.Module):
                 break
             elif len(mel_outputs) == self.max_decoder_steps:
                 print("Warning! Reached max decoder steps")
+                is_max_steps = True
                 break
 
             decoder_input = mel_output
@@ -451,7 +453,7 @@ class Decoder(nn.Module):
         mel_outputs, gate_outputs, alignments = self.parse_decoder_outputs(
             mel_outputs, gate_outputs, alignments)
 
-        return mel_outputs, gate_outputs, alignments
+        return mel_outputs, gate_outputs, alignments, is_max_steps
 
 
 class Tacotron2(nn.Module):
@@ -517,7 +519,7 @@ class Tacotron2(nn.Module):
     def inference(self, inputs):
         embedded_inputs = self.embedding(inputs).transpose(1, 2)
         encoder_outputs = self.encoder.inference(embedded_inputs)
-        mel_outputs, gate_outputs, alignments = self.decoder.inference(
+        mel_outputs, gate_outputs, alignments, is_max_step = self.decoder.inference(
             encoder_outputs)
 
         mel_outputs_postnet = self.postnet(mel_outputs)
@@ -525,5 +527,6 @@ class Tacotron2(nn.Module):
 
         outputs = self.parse_output(
             [mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
+        outputs.append(is_max_step)
 
         return outputs

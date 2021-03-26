@@ -82,7 +82,7 @@ def create_hparams(hparams_string=None, verbose=False):
         weight_decay=1e-6,
         grad_clip_thresh=1.0,
         batch_size=64,
-        mask_padding=True  # set model's padded outputs to padded values
+        mask_padding=True,  # set model's padded outputs to padded values
         use_cmudict=False,  # Use CMUDict during training to learn pronunciation of ARPAbet phonemes
         p_cmudict=0.5,     # The probablity of converting text to ARPAbet phonemes
         cmudict_path='/mnt/data1/shaojin/rtvc/SV2TTS/synthesizer/cmudict-0.7b',
