@@ -176,7 +176,7 @@ def main(args):
             tg_file = tg_dir.joinpath('{:s}_{:04d}.TextGrid'.format(args.prefix, utt_i + 1))
             tg.write(tg_file)
 
-            print('{:d}: {:s} | {:s}'.format(utt_i + 1, text, ' '.join(phoneme_pair)))
+            print('{:d}: {:s} | {:s} | {:s}'.format(utt_i + 1, text, ' '.join(phoneme_pair), text_arpabet))
             utt_i += 1
 
 
