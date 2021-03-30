@@ -122,7 +122,7 @@ def main(args):
                 text_arpabet = text_to_arpabet(cmu_dict, phoneme_pair, text, swap_phoneme=args.mispronunciation)
             except:
                 continue
-            if text_arpabet == re.sub(r'[^\w]', ' ', text).strip():
+            if text_arpabet == re.sub(r'[^\w ]', '', text).strip():
                 continue
 
             sequence = np.array(text_to_sequence(text_arpabet, ['english_cleaners']))[None, :]
