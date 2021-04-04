@@ -156,8 +156,8 @@ def main(args):
 
             idx = 0
             phone_tier = textgrid.IntervalTier(name='phones')
-            phone_tier.add(float(idx), float(idx + 1), 'sil')
-            idx += 1
+#             phone_tier.add(float(idx), float(idx + 1), 'sil')
+#             idx += 1
             for word in text.split():
                 arpabet = cmu_dict.lookup(word)[0]
                 for phoneme in arpabet.split():
@@ -172,7 +172,7 @@ def main(args):
                         phone_tier.add(float(idx), float(idx + 1), phoneme)
                     idx += 1    
             
-            phone_tier.add(float(idx), float(idx + 1), 'sil')
+#             phone_tier.add(float(idx), float(idx + 1), 'sil')
             tg.append(word_tier)
             tg.append(phone_tier)
 
