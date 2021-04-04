@@ -66,7 +66,7 @@ def parse_input(input_text_file_path):
 
 
 def text_to_arpabet(cmu_dict, phoneme_pairs, text, swap_phoneme=False):
-    text = re.sub(r'[^\w]', ' ', text)
+    text = re.sub(r'[^\w ]', '', text)
     text_arpabet_list = []
     for word in text.split():
         arpabet = cmu_dict.lookup(word)[0]
