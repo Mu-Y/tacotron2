@@ -122,6 +122,8 @@ def main(args):
                 text_arpabet = text_to_arpabet(cmu_dict, phoneme_pair, text, swap_phoneme=args.mispronunciation)
             except:
                 continue
+            print(text_arpabet)
+            print(re.sub(r'[^\w ]', '', text).strip())
             if text_arpabet == re.sub(r'[^\w ]', '', text).strip():
                 continue
 
@@ -145,7 +147,7 @@ def main(args):
             # Generate textgrid
             tg = textgrid.TextGrid()
             word_tier = textgrid.IntervalTier(name='words')
-            text = re.sub(r'[^\w]', ' ', text)
+            text = re.sub(r'[^\w ]', '', text)
             idx = 0
             for word in text.split():
                 word_tier.add(float(idx), float(idx + 1), word)
