@@ -25,13 +25,13 @@ def load_tts_vocoder_models(tacotron_checkpoint_path, waveglow_checkpoint_path):
 
     model = load_model(hparams)
     model.load_state_dict(torch.load(tacotron_checkpoint_path)['state_dict'])
-    _ = model.cuda().eval().half()
+    _ = model.cuda().eval()
 
 
     waveglow = torch.load(waveglow_checkpoint_path)['model']
-    waveglow.cuda().eval().half()
-    for k in waveglow.convinv:
-        k.float()
+    waveglow.cuda().eval()
+    #for k in waveglow.convinv:
+    #    k.float()
     denoiser = Denoiser(waveglow)
     return model, waveglow, denoiser, hparams
 
