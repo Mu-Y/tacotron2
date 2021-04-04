@@ -167,9 +167,9 @@ def main(args):
                             phone_tier.add(float(idx), float(idx + 1), phoneme)
                     else:
                         phone_tier.add(float(idx), float(idx + 1), phoneme)
-                    idx += 1
-                phone_tier.add(float(idx), float(idx + 1), 'sil')
-                idx += 1
+                    idx += 1    
+            
+            phone_tier.add(float(idx), float(idx + 1), 'sil')
             tg.append(word_tier)
             tg.append(phone_tier)
 
