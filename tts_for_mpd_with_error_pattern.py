@@ -187,12 +187,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input_text_file", type=Path, help= "Path to the input to TTS system."
-                                                           "Each column of it should be:"
-                                                           "Phoneme pair|Text"
-                                                           "For example:"
-                                                           "V W|Very Well"
-                                                           "If --mispronunciation is set, the synthesis will have"
-                                                           "mispronunciations by swapping the two phonemes.")
+                                                            "Each row is the grapheme text of the sentence.")
     parser.add_argument("output_dir", type=Path, help="Directory of synthesis")
     parser.add_argument("prefix", type=str, help="Prefix of the files")
     parser.add_argument("--tacotron_checkpoint_path", type=Path,
