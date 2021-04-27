@@ -20,6 +20,9 @@ import textgrid
 
 
 def load_tts_vocoder_models(tacotron_checkpoint_path, waveglow_checkpoint_path):
+    '''
+    Tacotron model was trained with mixed grapheme and phonemes.
+    '''
     hparams = create_hparams()
     hparams.sampling_rate = 22050
 
@@ -46,6 +49,14 @@ def load_cmudict(cmudict_path):
 
 
 def parse_input(input_dataset_dir: Path, speakers=['LXC']):
+    '''
+    Inputs:
+        input_dataset_dir: L2ARCTIC directory by default. /mnt/data1/shaojin/L2ARCTIC
+        speakers: the speaker which provides transcripts.
+    Outputs:
+        text: othographical transcripts. E.g., Today is sunny.
+        text_arpabet: words for correctly pronounced words, phonemes for mispronounced words. E.g. Today is {S AA N IY}.
+    '''
     texts = []
     texts_arpabet = []
     tgs = []
@@ -105,18 +116,6 @@ def parse_input(input_dataset_dir: Path, speakers=['LXC']):
     return texts, texts_arpabet, tgs
 
 
-def extract_speaker_embeddings(ref_datset_dir: Path, encoder, num_speakers):
-    speaker_dirs = [d for d in ref_datset_dir.glob('*') if d.is_dir()][:num_speakers]
-    embeds = []
-    for speaker_dir in speaker_dirs:
-        wav_path = speaker_dir.joinpath('wav', 'arctic_a0001.wav')
-        wav, sampling_rate = librosa.load(wav_path)
-        preprocessed_wav = encoder.preprocess_wav(wav, sampling_rate)
-        embed = encoder.embed_utterance(preprocessed_wav)
-        embeds.append(embed)
-    return speaker_dirs, embeds
-
-
 def main(args):
     model, waveglow, denoiser, hparams = load_tts_vocoder_models(args.tacotron_checkpoint_path, args.waveglow_checkpoint_path)
     
@@ -132,7 +131,7 @@ def main(args):
 
     utt_i = 0
     for text_idx, text in enumerate(texts):
-        sequence = np.array(text_to_sequence(text_arpabet, ['english_cleaners']))[None, :]
+        sequence = np.array(text_to_sequence(texts_arpabet[text_idx], ['english_cleaners']))[None, :]
         sequence = torch.autograd.Variable(
             torch.from_numpy(sequence)).cuda().long()
         _, mel_outputs_postnet, _, alignments, is_max_steps = model.inference(sequence)
@@ -140,10 +139,10 @@ def main(args):
             continue
         with torch.no_grad():
             wav = waveglow.infer(mel_outputs_postnet, sigma=0.666)
-        wav_denoised = denoiser(wav, strength=0.01)[:, 0].cpu().numpy().T
+        # wav_denoised = denoiser(wav, strength=0.01)[:, 0].cpu().numpy().T
 
         output_wav_file = wav_dir.joinpath('{:s}_{:04d}.wav'.format(args.prefix, utt_i + 1))
-        wavfile.write(output_wav_file, hparams.sampling_rate, wav_denoised)
+        wavfile.write(output_wav_file, hparams.sampling_rate, wav.cpu().numpy().T)
 
         # Save transcript
         output_trans_file = trans_dir.joinpath('{:s}_{:04d}.txt'.format(args.prefix, utt_i + 1))
@@ -162,13 +161,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_dataset_dir", type=Path, help= "Path to the input to TTS system."
-                                                           "Each column of it should be:"
-                                                           "Phoneme pair|Text"
-                                                           "For example:"
-                                                           "V W|Very Well"
-                                                           "If --mispronunciation is set, the synthesis will have"
-                                                           "mispronunciations by swapping the two phonemes.")
+    parser.add_argument("input_dataset_dir", type=Path, help= "L2ARCTIC directory.")
     parser.add_argument("output_dir", type=Path, help="Directory of synthesis")
     parser.add_argument("prefix", type=str, help="Prefix of the files")
     parser.add_argument("--tacotron_checkpoint_path", type=Path,
