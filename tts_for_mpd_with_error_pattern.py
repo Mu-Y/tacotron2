@@ -65,10 +65,13 @@ def parse_input(input_text_file_path):
     return texts
 
 
-def text_to_arpabet(cmu_dict, phoneme_pairs, text, swap_phoneme=False):
+def text_to_arpabet(cmu_dict, phoneme_pair, text, swap_phoneme=False):
+    # If the word has mispronunciation, it will be represented as phonemes; otherwise, it is graphemes.
+    # Today is {S AA N IY}. [sunny is mispronounced here.]
     text = re.sub(r'[^\w ]', '', text)
     text_arpabet_list = []
     for word in text.split():
+        # e.g., if word is 'sunny', then arpabet should be 'S AA N IY'
         arpabet = cmu_dict.lookup(word)[0]
         phoneme_list = []
         has_interested_phoneme = False
@@ -124,9 +127,6 @@ def main(args):
                 continue
             if re.sub(r'[^\w]', '', text_arpabet).strip() == re.sub(r'[^\w]', '', text).strip():
                 continue
-                
-#             print(text_arpabet)
-#             print(re.sub(r'[^\w ]', '', text).strip())
 
             sequence = np.array(text_to_sequence(text_arpabet, ['english_cleaners']))[None, :]
             sequence = torch.autograd.Variable(
@@ -136,9 +136,9 @@ def main(args):
                 continue
             with torch.no_grad():
                 wav = waveglow.infer(mel_outputs_postnet, sigma=0.666)
-            wav_denoised = denoiser(wav, strength=0.01)[:, 0].cpu().numpy().T
+            # wav_denoised = denoiser(wav, strength=0.01)[:, 0].cpu().numpy().T
             output_wav_file = wav_dir.joinpath('{:s}_{:04d}.wav'.format(args.prefix, utt_i + 1))
-            wavfile.write(output_wav_file, hparams.sampling_rate, wav_denoised)
+            wavfile.write(output_wav_file, hparams.sampling_rate, wav.cpu().numpy().T)
 
             # Save transcript
             output_trans_file = trans_dir.joinpath('{:s}_{:04d}.txt'.format(args.prefix, utt_i + 1))
@@ -146,6 +146,7 @@ def main(args):
                 f.write(text)
 
             # Generate textgrid
+            # The startTime and endTime are just indices, not alignment boundarys. Do not use it.
             tg = textgrid.TextGrid()
             word_tier = textgrid.IntervalTier(name='words')
             text = re.sub(r'[^\w ]', '', text)
