@@ -59,7 +59,6 @@ dependencies:
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.4.9=ha95c52a_0
   - pip:
-    - apex==0.1
     - appdirs==1.4.4
     - audioread==2.1.9
     - cffi==1.14.5
